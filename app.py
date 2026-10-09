@@ -125,24 +125,13 @@ def simulate():
     if errs:
         return simerror(errs)
 
-    curprice = vals['curprice']
-    vol = None if vals['vol'] is None else vals['vol'] / 100
-    hist = None
-    src = dict(price='entered by you', vol='entered by you')
-
-    # only go and get prices if we need them
-    if curprice is None or vol is None or method == 'resample':
-        try:
-            closes = prices.history(stksymbol)
-        except prices.PriceError as e:
-            return simerror([str(e)], True)    # the message points at Advanced, so open it
-        last, histvol, r = prices.stats(closes)
-        if curprice is None:
-            curprice, src['price'] = last, 'latest close'
-        if vol is None:
-            vol, src['vol'] = histvol, 'worked out from the last 2 years of daily closes'
-        if method == 'resample':
-            hist = r
+    # only goes and gets prices for what wasn't typed in
+    try:
+        curprice, vol, hist, src = prices.resolve(stksymbol, vals['curprice'],
+                                                  None if vals['vol'] is None else vals['vol'] / 100,
+                                                  method == 'resample')
+    except prices.PriceError as e:
+        return simerror([str(e)], True)    # the message points at Advanced, so open it
 
     res = sim.run(curprice, vol, vals['drift'] / 100, ndays, vals['allotment'], vals['iniprice'],
                   vals['buycmm'], vals['sellcmm'], vals['cptlgain'], hist=hist)

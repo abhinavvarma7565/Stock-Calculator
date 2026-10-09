@@ -91,6 +91,53 @@ def test_failed_lookups_are_not_cached(monkeypatch):
     assert 'ABC' not in prices.cache
 
 
+def test_error_has_a_short_form_for_the_agent():
+    e = prices.PriceError("Couldn't get prices for ABC right now.")
+    assert e.what == "Couldn't get prices for ABC right now."
+    assert 'Advanced' in str(e) and 'Advanced' not in e.what
+
+
+def history_of(c):
+    return lambda sym: np.asarray(c, dtype=float)
+
+
+def test_resolve_needs_no_lookup_when_everything_is_typed_in(monkeypatch):
+    def boom(sym):
+        raise AssertionError('should not look anything up')
+    monkeypatch.setattr(prices, 'history', boom)
+    price, vol, hist, src = prices.resolve('ABC', 12.0, 0.35, False)
+    assert (price, vol, hist) == (12.0, 0.35, None)
+    assert src == dict(price='entered by you', vol='entered by you')
+
+
+def test_resolve_fills_in_only_what_is_missing(monkeypatch):
+    c = 50 * np.exp(np.cumsum(np.random.default_rng(2).normal(0, 0.02, 300)))
+    monkeypatch.setattr(prices, 'history', history_of(c))
+    price, vol, hist, src = prices.resolve('ABC', None, 0.35, False)
+    assert price == pytest.approx(c[-1]) and vol == 0.35
+    assert src == dict(price='latest close', vol='entered by you')
+    price, vol, hist, src = prices.resolve('ABC', 12.0, None, False)
+    assert price == 12.0 and vol == pytest.approx(0.02 * np.sqrt(252), rel=0.15)
+    assert src['price'] == 'entered by you' and 'daily closes' in src['vol']
+    assert hist is None
+
+
+def test_resolve_gives_past_returns_when_resampling(monkeypatch):
+    c = 50 * np.exp(np.cumsum(np.random.default_rng(2).normal(0, 0.02, 300)))
+    monkeypatch.setattr(prices, 'history', history_of(c))
+    price, vol, hist, src = prices.resolve('ABC', 12.0, 0.35, True)    # both typed in, still looks up
+    assert price == 12.0 and vol == 0.35
+    assert len(hist) == len(c) - 1
+
+
+def test_resolve_passes_lookup_errors_on(monkeypatch):
+    def fail(sym):
+        raise prices.PriceError('nope')
+    monkeypatch.setattr(prices, 'history', fail)
+    with pytest.raises(prices.PriceError):
+        prices.resolve('ABC', None, None, False)
+
+
 def test_stats():
     # made up prices with a known 30% yearly vol
     r = np.random.default_rng(4).normal(0, 0.30 / np.sqrt(252), 5000)
