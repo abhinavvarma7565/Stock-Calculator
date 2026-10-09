@@ -1,0 +1,17 @@
+{% macro errors(errs) %}
+{% if errs %}
+<div class="errs" role="alert">
+  <ul>
+    {% for e in errs %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro field(form, name, label, default='', hint='', min='0') %}
+<div class="field">
+  <label for="{{ name }}">{{ label }}</label>
+  <input type="number" name="{{ name }}" id="{{ name }}" value="{{ form.get(name, default) }}" step="any" min="{{ min }}" inputmode="decimal" required>
+  {% if hint %}<small>{{ hint }}</small>{% endif %}
+</div>
+{% endmacro %}

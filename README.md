@@ -25,20 +25,37 @@ Fill in the details of a trade and the app gives you a report with:
 - sell commission
 - capital gains tax rate (%)
 
+## How it's worked out
+
+- proceeds = shares x final price
+- gain = proceeds - purchase price - buy and sell commission
+- tax = tax rate x gain (nothing if it's a loss, no refund is assumed)
+- net profit = gain - tax
+- ROI = net profit / total cost (purchase + commissions + tax)
+- break-even price = initial price + total commission / shares
+
 ## Run it
 
 ```
-pip install flask
+pip install -r requirements.txt
 python app.py
 ```
 
-Then open http://localhost:8080
+Then open http://localhost:8080 (set `FLASK_DEBUG=1` first if you want auto reload).
+
+## Tests
+
+```
+pytest
+```
 
 ## Files
 
-- `app.py` - routes and the calculations
-- `templates/index.html` - input form
-- `templates/index2.html` - report page
+- `app.py` - routes and input checks
+- `calc.py` - the trade maths
+- `templates/` - the pages
+- `static/style.css` - styles
+- `tests/` - pytest tests
 
 ## Roadmap
 

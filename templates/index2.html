@@ -1,75 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}{{ stksymbol }} report{% endblock %}
+{% block body %}
+{% set np = netprft|round(2) %}
+<h1>Final report <span class="sym">{{ stksymbol }}</span></h1>
 
-<h1> Final report </h1>
-<table border="1" cellspacing="1" >
-  <tr>
-    <th>Stock Symbol</th>
-    <th>Proceeds</th>
-    <th>cost</th>
+<div class="cards">
+  <div class="card {{ 'good' if np > 0 else ('bad' if np < 0 else '') }}">
+    <span class="label">Net profit</span>
+    <span class="big">{{ netprft|money }}</span>
+    <span class="sub">{{ 'profit' if np > 0 else ('loss' if np < 0 else 'break even') }} after commissions and tax</span>
+  </div>
+  <div class="card">
+    <span class="label">Return on investment</span>
+    <span class="big">{{ roi|pct }}</span>
+    <span class="sub">net profit / total cost</span>
+  </div>
+  <div class="card">
+    <span class="label">Break-even sell price</span>
+    <span class="big">{{ brkeven|money }}</span>
+    <span class="sub">sell above this to make money</span>
+  </div>
+</div>
 
-  </tr>
-  <tr>
-    <td>{{stksymbol}}</td>
-    <td>{{proceeds}}</td>
-    <td>{{cost}}</td>
-
-  </tr>
-</table>
-<br>
-<table border="1" cellspacing="1" >
-  <tr>
-    <th colspan="3">Cost Details</th>
-
-  </tr>
-  <tr>
-    <td>total purchase price: </td>
-    <td>{{ttlshareprice}}</td>
-  </tr>
-  <tr>
-    <td>Buy Commission: </td>
-    <td>{{buycmm}}</td>
-  </tr>
-  <tr>
-    <td>Sell commission: </td>
-    <td>{{sellcmm}}</td>
-  </tr>
-  <tr>
-    <td>Tax on capital gain: </td>
-    <td> ${{tocg}}</td>
-  </tr>
-
-</table>
-<br>
-<table border="1" cellspacing="1" >
-  <tr>
-    <th>Net Profit</th>
-  </tr>
-  <tr>
-    <td>${{netprft}} </td>
-  </tr>
-</table>
-<br>
-<table border="1" cellspacing="1" >
-  <tr>
-    <th>Return on investment</th>
-  </tr>
-  <tr>
-    <td>{{roi}}% </td>
-  </tr>
-</table>
-<br>
-<table border="1" cellspacing="1" >
-  <tr>
-    <th>to break even, you should have final share price of: </th>
-  </tr>
-  <tr>
-    <td>${{brkeven}} </td>
-  </tr>
+<h2>Details</h2>
+<table>
+  <tr><td>Proceeds from the sale</td><td>{{ proceeds|money }}</td></tr>
+  <tr><td>Total purchase price</td><td>{{ ttlshareprice|money }}</td></tr>
+  <tr><td>Buy commission</td><td>{{ buycmm|money }}</td></tr>
+  <tr><td>Sell commission</td><td>{{ sellcmm|money }}</td></tr>
+  <tr><td>Tax on capital gain</td><td>{{ tocg|money }}</td></tr>
+  <tr class="total"><td>Total cost</td><td>{{ cost|money }}</td></tr>
 </table>
 
-</body>
-</html>
+<a class="btn" href="{{ url_for('index') }}">New calculation</a>
+{% endblock %}

@@ -1,39 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>HTML5 Form</title>
-  </head>
+{% extends "base.html" %}
+{% from "macros.html" import field, errors %}
+{% block body %}
+<h1>Trade calculator</h1>
+<p class="lead">Put in a trade and see what you made after commissions and tax.</p>
 
-<body>
-  <div id="contact-form">
-    <form id="contact" method="post" action="post">
-      <fieldset>
+{{ errors(errs) }}
 
-        <label for="stksymbol">Stock Symbol:</label>
-        <input type="text" name="stksymbol" id="stksymbol"><br><hr>
-
-        <label for="allotment">(allotment) number of shares:</label>
-        <input type="text" name="allotment" id="allotment"><br><hr>
-
-        <label for="final price">Final Share Price:</label>
-        <input type="text" name="fnlprice" id="fnlprice"><br><hr>
-
-        <label for="sellcmm">Sell commisiion:</label>
-        <input type="text" name="sellcmm" id="sellcmm"><br><hr>
-
-        <label for="iniprice">initial Share price:</label>
-        <input type="text" name="iniprice" id="iniprice"><br><hr>
-
-        <label for="buycmm">Buy commisiion:</label>
-        <input type="text" name="buycmm" id="buycmm"><br><hr>
-
-        <label for="cptlgain">Capital Gain tax rate:</label>
-        <input type="text" name="cptlgain" id="cptlgain"><br><hr>
-
-        <input type="submit" name="submit" id="submit" value="calculate" />
-      </fieldset>
-    </form>
-  </div><!-- /end #contact-form -->
-</body>
-</html>
+<form method="post" action="{{ url_for('report') }}">
+  <div class="grid">
+    <div class="field">
+      <label for="stksymbol">Stock symbol</label>
+      <input type="text" name="stksymbol" id="stksymbol" value="{{ form.get('stksymbol', '') }}" placeholder="AAPL" maxlength="10" required>
+    </div>
+    {{ field(form, 'allotment', 'Number of shares') }}
+    {{ field(form, 'iniprice', 'Initial share price') }}
+    {{ field(form, 'fnlprice', 'Final share price') }}
+    {{ field(form, 'buycmm', 'Buy commission', '0') }}
+    {{ field(form, 'sellcmm', 'Sell commission', '0') }}
+    {{ field(form, 'cptlgain', 'Capital gain tax rate (%)', hint='Only charged on a gain') }}
+  </div>
+  <button type="submit">Calculate</button>
+</form>
+{% endblock %}
