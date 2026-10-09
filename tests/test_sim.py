@@ -112,6 +112,29 @@ def test_numbers_are_in_order():
     assert 0.97 * 5000 <= sum(r['bins']['counts']) <= 5000
 
 
+def test_histogram_edges_are_round_and_include_zero():
+    r = sim.run(50, 0.4, 0.0, 63, npaths=5000, seed=3,
+                allotment=10, iniprice=48, buycmm=1, sellcmm=1, cptlgain=20)
+    e = r['bins']['edges']
+    w = e[1] - e[0]
+    assert 0 in e                       # no bar mixes loss and profit
+    assert all(b - a == pytest.approx(w) for a, b in zip(e, e[1:]))
+    assert all(x / w == pytest.approx(round(x / w)) for x in e)     # multiples of the step
+    assert 15 <= len(r['bins']['counts']) <= 42
+
+
+def test_histogram_when_every_run_ends_the_same():
+    r = sim.run(15, 0, 0, 63, npaths=100, seed=1, **pos)
+    assert len(r['bins']['edges']) == len(r['bins']['counts']) + 1 >= 2
+    assert sum(r['bins']['counts']) == 100
+
+
+@pytest.mark.parametrize('x, want', [(0.7, 1), (1, 1), (1.2, 2), (2.2, 2.5), (3, 5), (7, 10),
+                                     (13, 20), (0.034, 0.05), (480, 500)])
+def test_nicestep(x, want):
+    assert sim.nicestep(x) == pytest.approx(want)
+
+
 def test_loss_is_capped_by_what_you_put_in():
     # a stock can't go below 0, so the worst you can lose is purchase price + commissions
     r = sim.run(10, 1.5, 0, 252, npaths=5000, seed=4, **pos)
