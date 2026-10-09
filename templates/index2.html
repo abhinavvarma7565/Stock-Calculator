@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ stksymbol }} report{% endblock %}
+{% block body %}
+{% set np = netprft|round(2) %}
+<h1>Final report <span class="sym">{{ stksymbol }}</span></h1>
+
+<div class="cards">
+  <div class="card {{ 'good' if np > 0 else ('bad' if np < 0 else '') }}">
+    <span class="label">Net profit</span>
+    <span class="big">{{ netprft|money }}</span>
+    <span class="sub">{{ 'profit' if np > 0 else ('loss' if np < 0 else 'break even') }} after commissions and tax</span>
+  </div>
+  <div class="card">
+    <span class="label">Return on investment</span>
+    <span class="big">{{ roi|pct }}</span>
+    <span class="sub">net profit / total cost</span>
+  </div>
+  <div class="card">
+    <span class="label">Break-even sell price</span>
+    <span class="big">{{ brkeven|money }}</span>
+    <span class="sub">sell above this to make money</span>
+  </div>
+</div>
+
+<h2>Details</h2>
+<table>
+  <tr><td>Proceeds from the sale</td><td>{{ proceeds|money }}</td></tr>
+  <tr><td>Total purchase price</td><td>{{ ttlshareprice|money }}</td></tr>
+  <tr><td>Buy commission</td><td>{{ buycmm|money }}</td></tr>
+  <tr><td>Sell commission</td><td>{{ sellcmm|money }}</td></tr>
+  <tr><td>Tax on capital gain</td><td>{{ tocg|money }}</td></tr>
+  <tr class="total"><td>Total cost</td><td>{{ cost|money }}</td></tr>
+</table>
+
+<a class="btn" href="{{ url_for('index') }}">New calculation</a>
+<a class="btn alt" href="{{ url_for('simulate', **args) }}">Simulate holding longer</a>
+{% endblock %}

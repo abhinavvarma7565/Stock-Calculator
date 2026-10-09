@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "macros.html" import field, symbol, choice, errors %}
+{% block title %}Simulator{% endblock %}
+{% block body %}
+<h1>Profit simulator</h1>
+<p class="lead">See the range of things that could happen if you hold a position for a while. It runs 10,000 random price paths through the same maths as the calculator.</p>
+
+{{ errors(errs) }}
+
+<form method="post" action="{{ url_for('simulate') }}">
+  <div class="grid">
+    {{ symbol(form) }}
+    {{ field(form, 'allotment', 'Number of shares') }}
+    {{ field(form, 'iniprice', 'Initial share price', hint="What you paid, or today's price if you haven't bought yet") }}
+    {{ field(form, 'buycmm', 'Buy commission', '0') }}
+    {{ field(form, 'sellcmm', 'Sell commission', '0') }}
+    {{ field(form, 'cptlgain', 'Capital gain tax rate (%)', hint='Only charged on a gain') }}
+    {{ choice(form, 'ndays', 'Sell after', horizons.items()|list, '63', 'About 21 trading days a month') }}
+    {{ field(form, 'drift', 'Expected yearly return (%)', '0', 'Leave at 0 if you have no view on which way it goes', '-100') }}
+  </div>
+
+  <details{% if openadv or form.get('curprice') or form.get('vol') or form.get('method') == 'resample' %} open{% endif %}>
+    <summary>Advanced</summary>
+    <div class="grid">
+      {{ field(form, 'curprice', 'Current price', hint='Leave blank to look it up', required=false) }}
+      {{ field(form, 'vol', 'Yearly volatility (%)', hint='Leave blank to work it out from the last 2 years of prices', required=false) }}
+      {{ choice(form, 'method', 'Model', [('normal', 'Normal random moves'), ('resample', 'Resample past daily moves')], 'normal', 'Resampling keeps the big up and down days a real stock has') }}
+    </div>
+  </details>
+
+  <button type="submit">Run simulation</button>
+</form>
+{% endblock %}
