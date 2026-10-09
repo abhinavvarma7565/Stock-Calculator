@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros.html" import field, errors %}
+{% from "macros.html" import field, symbol, errors %}
 {% block body %}
 <h1>Trade calculator</h1>
 <p class="lead">Put in a trade and see what you made after commissions and tax.</p>
@@ -8,10 +8,7 @@
 
 <form method="post" action="{{ url_for('report') }}">
   <div class="grid">
-    <div class="field">
-      <label for="stksymbol">Stock symbol</label>
-      <input type="text" name="stksymbol" id="stksymbol" value="{{ form.get('stksymbol', '') }}" placeholder="AAPL" maxlength="10" required>
-    </div>
+    {{ symbol(form) }}
     {{ field(form, 'allotment', 'Number of shares') }}
     {{ field(form, 'iniprice', 'Initial share price') }}
     {{ field(form, 'fnlprice', 'Final share price') }}

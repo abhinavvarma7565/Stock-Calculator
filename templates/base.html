@@ -10,6 +10,10 @@
 <body>
   <header>
     <a class="brand" href="{{ url_for('index') }}">Stock Calculator</a>
+    <nav>
+      <a href="{{ url_for('index') }}">Calculator</a>
+      <a href="{{ url_for('simulate') }}">Simulator</a>
+    </nav>
   </header>
   <main>
     {% block body %}{% endblock %}
