@@ -1,0 +1,36 @@
+{% macro errors(errs) %}
+{% if errs %}
+<div class="errs" role="alert">
+  <ul>
+    {% for e in errs %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro symbol(form) %}
+<div class="field">
+  <label for="stksymbol">Stock symbol</label>
+  <input type="text" name="stksymbol" id="stksymbol" value="{{ form.get('stksymbol', '') }}" placeholder="AAPL" maxlength="10" required>
+</div>
+{% endmacro %}
+
+{% macro field(form, name, label, default='', hint='', min='0', required=true) %}
+<div class="field">
+  <label for="{{ name }}">{{ label }}</label>
+  <input type="number" name="{{ name }}" id="{{ name }}" value="{{ form.get(name, default) }}" step="any" min="{{ min }}" inputmode="decimal"{% if required %} required{% endif %}>
+  {% if hint %}<small>{{ hint }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro choice(form, name, label, options, default, hint='') %}
+<div class="field">
+  <label for="{{ name }}">{{ label }}</label>
+  <select name="{{ name }}" id="{{ name }}">
+    {% for value, text in options %}
+    <option value="{{ value }}"{% if form.get(name, default)|string == value|string %} selected{% endif %}>{{ text }}</option>
+    {% endfor %}
+  </select>
+  {% if hint %}<small>{{ hint }}</small>{% endif %}
+</div>
+{% endmacro %}

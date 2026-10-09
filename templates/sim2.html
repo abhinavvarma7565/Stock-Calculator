@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{{ stksymbol }} simulation{% endblock %}
+{% block body %}
+{% set ep = res.expprft|round(2) %}
+<h1>Simulation <span class="sym">{{ stksymbol }}</span></h1>
+<p class="lead">What could happen if you sell after {{ horizon }}. {{ '{:,}'.format(res.npaths) }} random runs.</p>
+
+<div class="cards four">
+  <div class="card">
+    <span class="label">Chance of profit</span>
+    <span class="big">{{ (res.pprofit * 100)|round|int }}%</span>
+    <span class="sub">of runs make money after commissions and tax</span>
+  </div>
+  <div class="card {{ 'good' if ep > 0 else ('bad' if ep < 0 else '') }}">
+    <span class="label">Expected net profit</span>
+    <span class="big">{{ res.expprft|money }}</span>
+    <span class="sub">average of all runs, median {{ res.medprft|money }}</span>
+  </div>
+  <div class="card">
+    <span class="label">Likely range</span>
+    <span class="big small">{{ res.lo|money }} to {{ res.hi|money }}</span>
+    <span class="sub">9 in 10 runs end between these</span>
+  </div>
+  <div class="card">
+    <span class="label">Bad case</span>
+    <span class="big">{{ res.worst|money }}</span>
+    <span class="sub">average of the worst 1 in 20 runs</span>
+  </div>
+</div>
+
+<p class="today">If you sold today at {{ res.curprice|money }} you would net <strong>{{ res.now.netprft|money }}</strong> ({{ res.now.roi|pct }}). You break even at {{ res.brkeven|money }}.</p>
+
+<figure class="chart" id="fan">
+  <h2>Where the price could go</h2>
+  <p class="note">Each run is one possible path. The shaded bands show where the runs are on each day.</p>
+  <div class="legend">
+    <span><i class="key line"></i>Median</span>
+    <span><i class="key box inner"></i>Middle 50% of runs</span>
+    <span><i class="key box outer"></i>Middle 90% of runs</span>
+    <span><i class="key line be"></i>Break-even price</span>
+  </div>
+  <div class="plot" tabindex="0" role="group" aria-label="Price chart. Use the left and right arrow keys to read the values day by day."></div>
+  <details>
+    <summary>Table view</summary>
+    <table class="tbl">
+      <tr><th>Day</th><th>5th</th><th>25th</th><th>Median</th><th>75th</th><th>95th</th></tr>
+      {% for r in fanrows %}
+      <tr><td>{{ r.day }}</td><td>{{ r.p5|money }}</td><td>{{ r.p25|money }}</td><td>{{ r.p50|money }}</td><td>{{ r.p75|money }}</td><td>{{ r.p95|money }}</td></tr>
+      {% endfor %}
+    </table>
+  </details>
+</figure>
+
+<figure class="chart" id="hist">
+  <h2>How much you could make or lose</h2>
+  <p class="note">Net profit after commissions and tax, for the middle 98% of runs. Taller bars mean more runs ended there.</p>
+  <div class="plot" tabindex="0" role="group" aria-label="Profit chart. Use the left and right arrow keys to move between bars."></div>
+  <details>
+    <summary>Table view</summary>
+    <table class="tbl">
+      <tr><th>Net profit</th><th>Share of runs</th></tr>
+      {% for r in binrows %}
+      <tr><td>{{ r.lo|money }} to {{ r.hi|money }}</td><td>{{ '{:.1f}'.format(r.share) }}%</td></tr>
+      {% endfor %}
+    </table>
+  </details>
+</figure>
+
+<h2>What this assumes</h2>
+<ul class="assume">
+  <li>Price today: {{ res.curprice|money }} ({{ src.price }})</li>
+  <li>Volatility: {{ ((res.vol * 100)|pct) }} a year ({{ src.vol }})</li>
+  <li>Expected return: {{ ((res.drift * 100)|pct) }} a year</li>
+  <li>{{ 'Daily moves resampled from the last 2 years, scaled to that volatility' if method == 'resample' else 'Normal random daily moves (geometric Brownian motion)' }}</li>
+  <li>252 trading days in a year, commissions as entered, tax only on a gain and no refund on a loss</li>
+</ul>
+<p class="note">A simulation shows what could happen if prices behave like the model. Real prices jump around more than a model expects, so this is not a prediction and not financial advice. The numbers move a little each time you run it because the runs are random.</p>
+
+<a class="btn" href="{{ url_for('simulate', **args) }}">Change inputs</a>
+<a class="btn alt" href="{{ url_for('index') }}">Back to calculator</a>
+
+<script type="application/json" id="simdata">{{ chartdata|tojson }}</script>
+<script src="{{ url_for('static', filename='charts.js') }}"></script>
+{% endblock %}
